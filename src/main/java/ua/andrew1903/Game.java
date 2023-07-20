@@ -1,9 +1,12 @@
 package ua.andrew1903;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Game {
     private static final int COLORS = 4;
+
     private final List<Bottle> bottles;
 
     public Game(int bottlesNumber, int bottlesCapacity, int emptyBottles) {
@@ -12,23 +15,18 @@ public class Game {
     }
 
     private List<Bottle> generateBottles(int bottlesNumber, int bottlesCapacity) {
-        var bottles = new ArrayList<Bottle>();
-        for (int i = 0; i < bottlesNumber; i++) {
-            var liquids = new Stack<Integer>();
-            for (int j = 0; j < COLORS; j++) {
-                liquids.push(getRandomColor(0, COLORS));
-            }
-            bottles.add(new Bottle(bottlesCapacity, liquids));
-        }
-        return bottles;
+        return IntStream.range(0, bottlesNumber)
+                .mapToObj(i -> new Bottle(bottlesCapacity, IntStream.range(0, COLORS)
+                        .mapToObj(i1 -> getRandomColor(0, COLORS)).collect(Collectors.toCollection(Stack::new))))
+                .toList();
     }
 
-    private boolean transferLiquid(int firstBottleIndex, int secondBottleIndex) {
-        if (firstBottleIndex < 0 || firstBottleIndex >= bottles.size() ||
-                secondBottleIndex < 0 || secondBottleIndex >= bottles.size()) {
+    private boolean transferLiquid(int fromIndex, int toIndex) {
+        if (fromIndex < 0 || fromIndex >= bottles.size() ||
+                toIndex < 0 || toIndex >= bottles.size()) {
             throw new ArrayIndexOutOfBoundsException();
         }
-        return transfer(firstBottleIndex, secondBottleIndex);
+        return transfer(fromIndex, toIndex);
     }
 
     private boolean transfer(int fromIndex, int toIndex) {
@@ -51,9 +49,8 @@ public class Game {
         if (to.isEmpty()) {
             return true;
         }
-
-        var fromColor = from.peek();
-        var toColor = to.peek();
+        int fromColor = from.peek();
+        int toColor = to.peek();
         return fromColor == toColor;
     }
 
@@ -85,25 +82,22 @@ public class Game {
             System.out.println("\n");
             System.out.println(draw());
             System.out.print("""
-                    1: transfer the color to another bottle
-                    2: exit
+                    1: exit
+                    2: transfer the color to another bottle
                     """);
             System.out.print("ENTER NUMBER: ");
             var input = scan.nextLine();
-            switch (input) {
-                case "1" -> {
-                    System.out.print("Enter the index of the first bottle: ");
-                    var firstIndex = scan.nextInt();
-                    System.out.print("Enter the index of the second bottle: ");
-                    var secondIndex = scan.nextInt();
-                    var transferRes = transferLiquid(firstIndex, secondIndex)
-                            ? "Transferred"
-                            : "Something went wrong";
-                    System.out.println(transferRes);
-                }
-                case "2" -> {
-                    return;
-                }
+            if (input.equals("1")) {
+                return;
+            } else {
+                System.out.print("Enter the index of the first bottle: ");
+                var firstIndex = scan.nextInt();
+                System.out.print("Enter the index of the second bottle: ");
+                var secondIndex = scan.nextInt();
+                var transferRes = transferLiquid(firstIndex, secondIndex)
+                        ? "Transferred"
+                        : "Something went wrong";
+                System.out.println(transferRes);
             }
         }
     }

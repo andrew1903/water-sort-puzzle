@@ -25,7 +25,7 @@ public class Bottle {
     }
 
     public boolean isEmpty() {
-        return liquids.size() == 0;
+        return liquids.isEmpty();
     }
 
     public boolean isFull() {
